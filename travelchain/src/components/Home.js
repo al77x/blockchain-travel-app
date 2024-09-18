@@ -32,6 +32,14 @@ const Home = () => {
             <h3>Secure Blockchain</h3>
             <p>Your points are securely stored using blockchain technology.</p>
           </div>
+          <div className="feature">
+            <div className="feature-icon">☎️</div>
+            <h3>24/7 Customer Service</h3>
+            <p>
+              We have a dedicated team to help you out if you're unable to book
+              your travel on time.
+            </p>
+          </div>
         </div>
       </section>
     </main>
