@@ -1,7 +1,241 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Web3 from "web3";
 
 const PartnerOffers = () => {
-  const [userPoints, setUserPoints] = useState(5000);
+  const [userPoints, setUserPoints] = useState(0);
+  const [account, setAccount] = useState("");
+  const [loyaltyProgram, setLoyaltyProgram] = useState(null);
+
+  const contractABI = [
+    {
+      inputs: [],
+      stateMutability: "nonpayable",
+      type: "constructor",
+    },
+    {
+      anonymous: false,
+      inputs: [
+        {
+          indexed: true,
+          internalType: "address",
+          name: "user",
+          type: "address",
+        },
+        {
+          indexed: false,
+          internalType: "address",
+          name: "service",
+          type: "address",
+        },
+        {
+          indexed: false,
+          internalType: "uint256",
+          name: "amount",
+          type: "uint256",
+        },
+      ],
+      name: "PointsIssued",
+      type: "event",
+    },
+    {
+      anonymous: false,
+      inputs: [
+        {
+          indexed: true,
+          internalType: "address",
+          name: "user",
+          type: "address",
+        },
+        {
+          indexed: false,
+          internalType: "uint256",
+          name: "amount",
+          type: "uint256",
+        },
+      ],
+      name: "PointsRedeemed",
+      type: "event",
+    },
+    {
+      anonymous: false,
+      inputs: [
+        {
+          indexed: true,
+          internalType: "address",
+          name: "from",
+          type: "address",
+        },
+        {
+          indexed: false,
+          internalType: "address",
+          name: "to",
+          type: "address",
+        },
+        {
+          indexed: false,
+          internalType: "uint256",
+          name: "amount",
+          type: "uint256",
+        },
+      ],
+      name: "PointsTransferred",
+      type: "event",
+    },
+    {
+      inputs: [
+        {
+          internalType: "address",
+          name: "user",
+          type: "address",
+        },
+        {
+          internalType: "uint256",
+          name: "points",
+          type: "uint256",
+        },
+        {
+          internalType: "address",
+          name: "serviceProvider",
+          type: "address",
+        },
+      ],
+      name: "issuePoints",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "owner",
+      outputs: [
+        {
+          internalType: "address",
+          name: "",
+          type: "address",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "uint256",
+          name: "points",
+          type: "uint256",
+        },
+      ],
+      name: "redeemPoints",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "address",
+          name: "to",
+          type: "address",
+        },
+        {
+          internalType: "uint256",
+          name: "points",
+          type: "uint256",
+        },
+      ],
+      name: "transferPoints",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "address",
+          name: "",
+          type: "address",
+        },
+      ],
+      name: "users",
+      outputs: [
+        {
+          internalType: "uint256",
+          name: "points",
+          type: "uint256",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "address",
+          name: "user",
+          type: "address",
+        },
+      ],
+      name: "viewPoints",
+      outputs: [
+        {
+          internalType: "uint256",
+          name: "",
+          type: "uint256",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+  ];
+
+  const contractAddress = "0x2206B97A7a0fdc61a862DC5F6Dcb732D10bAe063";
+
+  useEffect(() => {
+    const initWeb3 = async () => {
+      if (window.ethereum) {
+        const web3Instance = new Web3(window.ethereum);
+        await window.ethereum.enable();
+        const accounts = await web3Instance.eth.getAccounts();
+        setAccount(accounts[0]);
+
+        const contract = new web3Instance.eth.Contract(
+          contractABI,
+          contractAddress
+        );
+        setLoyaltyProgram(contract);
+
+        try {
+          const userPoints = await contract.methods
+            .viewPoints(accounts[0])
+            .call();
+          setUserPoints(userPoints);
+        } catch (error) {
+          console.error("Error fetching points:", error);
+        }
+      }
+    };
+
+    initWeb3();
+  }, []);
+
+  const redeemOffer = async (offerPoints) => {
+    if (userPoints >= offerPoints) {
+      try {
+        await loyaltyProgram.methods
+          .redeemPoints(offerPoints)
+          .send({ from: account });
+        const updatedPoints = await loyaltyProgram.methods
+          .viewPoints(account)
+          .call();
+        setUserPoints(updatedPoints);
+        alert(`Redeemed for ${offerPoints} points`);
+      } catch (error) {
+        console.error("Error redeeming offer:", error);
+      }
+    } else {
+      alert("Not enough points");
+    }
+  };
 
   const offers = [
     {
@@ -30,15 +264,6 @@ const PartnerOffers = () => {
     },
   ];
 
-  const redeemOffer = (offerPoints) => {
-    if (userPoints >= offerPoints) {
-      setUserPoints(userPoints - offerPoints);
-      alert(`Redeemed for ${offerPoints} points`);
-    } else {
-      alert("Not enough points");
-    }
-  };
-
   return (
     <div className="container">
       <h2>Partner Offers</h2>
@@ -53,7 +278,7 @@ const PartnerOffers = () => {
             <p>{offer.description}</p>
             <p>
               <strong>Points required: {offer.points}</strong>
-            </p>{" "}
+            </p>
             <button
               onClick={() => redeemOffer(offer.points)}
               disabled={userPoints < offer.points}

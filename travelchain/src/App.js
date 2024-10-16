@@ -4,6 +4,7 @@ import Home from "./components/Home";
 import "./App.css";
 import RedeemPoints from "./components/RedeemPoints";
 import PartnerOffers from "./components/PartnerOffers";
+import LoyaltyDemo from "./components/LoyaltyDemo";
 
 function App() {
   return (
@@ -20,6 +21,9 @@ function App() {
           <Link to="/my-points/redeem-points/partner-offers">
             Partner Offers
           </Link>
+          <Link to="/my-points/redeem-points/partner-offers/loyalty-points">
+            Loyalty Points Demo
+          </Link>
         </div>
       </nav>
 
@@ -30,6 +34,10 @@ function App() {
         <Route
           path="/my-points/redeem-points/partner-offers"
           element={<PartnerOffers />}
+        />
+        <Route
+          path="/my-points/redeem-points/partner-offers/loyalty-points"
+          element={<LoyaltyDemo />}
         />
       </Routes>
     </div>
