@@ -10,7 +10,7 @@ const Home = () => {
             Experience the future of travel rewards with our blockchain-based
             loyalty program.
           </p>
-          <a href="/loyalty-demo" className="btn">
+          <a href="/booking" className="btn">
             Get Started
           </a>
         </div>
