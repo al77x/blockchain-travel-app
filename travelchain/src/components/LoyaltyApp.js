@@ -8,6 +8,7 @@ const LoyaltyApp = () => {
   const [loyaltyProgram, setLoyaltyProgram] = useState(null);
   const [pointsToAdd, setPointsToAdd] = useState(0); // New state to handle points to add
 
+  // ABI and contract address
   const contractABI = [
     {
       inputs: [],
@@ -190,7 +191,7 @@ const LoyaltyApp = () => {
     },
   ];
 
-  const contractAddress = "0x2206B97A7a0fdc61a862DC5F6Dcb732D10bAe063"; // Use your deployed contract address
+  const contractAddress = "0x5d2da0402ed9843C04F8c77f3Ae7975B1e90d480"; // Replace with your deployed contract address
 
   useEffect(() => {
     const initWeb3 = async () => {

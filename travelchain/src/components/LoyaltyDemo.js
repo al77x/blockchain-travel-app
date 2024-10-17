@@ -189,7 +189,7 @@ const LoyaltyDemo = () => {
     },
   ];
 
-  const contractAddress = "0xdC8bAD1BFd3657627024B0AA7CD6FD06e969889f"; // Replace with your deployed contract address
+  const contractAddress = "0x5d2da0402ed9843C04F8c77f3Ae7975B1e90d480"; // Replace with your deployed contract address
 
   useEffect(() => {
     const initWeb3 = async () => {
