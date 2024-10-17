@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
 import Web3 from "web3";
 
-const LoyaltyApp = () => {
+const LoyaltyDemo = () => {
+  const [points, setPoints] = useState(0); // Holds the user's points
   const [account, setAccount] = useState("");
-  const [points, setPoints] = useState(0);
-  const [web3, setWeb3] = useState(null);
   const [loyaltyProgram, setLoyaltyProgram] = useState(null);
-  const [pointsToAdd, setPointsToAdd] = useState(0); // New state to handle points to add
 
   // ABI and contract address
   const contractABI = [
@@ -191,7 +189,7 @@ const LoyaltyApp = () => {
     },
   ];
 
-  const contractAddress = "0x5d2da0402ed9843C04F8c77f3Ae7975B1e90d480"; // Replace with your deployed contract address
+  const contractAddress = "0x5d2da0402ed9843C04F8c77f3Ae7975B1e90d480"; // Use the correct contract address
 
   useEffect(() => {
     const initWeb3 = async () => {
@@ -207,49 +205,87 @@ const LoyaltyApp = () => {
         );
         setLoyaltyProgram(contract);
 
+        // Fetch the user's points from the blockchain and convert BigInt to number
         const userPoints = await contract.methods
           .viewPoints(accounts[0])
           .call();
-        setPoints(userPoints);
+        const convertedPoints = Number(userPoints); // Convert BigInt to a regular number
+        console.log("Fetched Points:", convertedPoints); // Add this line for debugging
+        setPoints(convertedPoints); // Set the points in the state
       }
     };
 
     initWeb3();
   }, []);
 
-  // Function to add points
-  const issuePoints = async () => {
+  // Function to issue points (e.g., earn points)
+  const issuePoints = async (amount) => {
     try {
       await loyaltyProgram.methods
-        .issuePoints(account, pointsToAdd, account)
+        .issuePoints(account, amount, account)
         .send({ from: account, gas: 3000000 });
+
+      // Fetch updated points after issuing
       const updatedPoints = await loyaltyProgram.methods
         .viewPoints(account)
         .call();
-      setPoints(updatedPoints); // Update points after issuing
-      alert(`Successfully added ${pointsToAdd} points.`);
+      setPoints(Number(updatedPoints)); // Update the points in the state
+      console.log("Updated Points (After Issuing):", Number(updatedPoints)); // Debug log
+      alert(`Successfully added ${amount} points.`);
     } catch (error) {
       console.error("Error issuing points:", error);
-      alert("An error occurred while adding points. Please try again.");
+      alert("An error occurred while adding points.");
+    }
+  };
+
+  // Function to redeem points
+  const redeemPoints = async (requiredPoints) => {
+    if (points >= requiredPoints) {
+      try {
+        await loyaltyProgram.methods
+          .redeemPoints(requiredPoints)
+          .send({ from: account });
+        const updatedPoints = await loyaltyProgram.methods
+          .viewPoints(account)
+          .call();
+        const convertedPoints = Number(updatedPoints); // Convert BigInt to number
+        setPoints(convertedPoints); // Update points after redeeming
+        alert(`Successfully redeemed ${requiredPoints} points.`);
+      } catch (error) {
+        console.error("Error redeeming points:", error);
+        alert("An error occurred while redeeming points.");
+      }
+    } else {
+      alert("You don't have enough points.");
     }
   };
 
   return (
-    <div>
-      <h3>Blockchain Loyalty Program</h3>
-      <p>Your account: {account}</p>
-      <p>Points on Blockchain: {points}</p>
+    <div className="container">
+      <h2>Account Information</h2>
 
-      {/* Input field to specify points to add */}
-      <input
-        type="number"
-        value={pointsToAdd}
-        onChange={(e) => setPointsToAdd(Number(e.target.value))}
-        placeholder="Enter points to add"
-      />
-      <button onClick={issuePoints}>Add Points</button>
+      {/* Display points balance */}
+      <div className="points-balance">
+        Your current balance: {points} points {/* Display points here */}
+      </div>
+
+      {/* Buttons to simulate earning points */}
+      <div className="earn-points">
+        <h3>Earn Points</h3>
+        <div className="earn-buttons">
+          <button onClick={() => issuePoints(1000)}>
+            Book Flight (Earn 1000 points)
+          </button>
+          <button onClick={() => issuePoints(500)}>
+            Stay at Hotel (Earn 500 points)
+          </button>
+          <button onClick={() => issuePoints(300)}>
+            Rent a Car (Earn 300 points)
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default LoyaltyApp;
+export default LoyaltyDemo;

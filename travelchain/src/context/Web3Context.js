@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { createContext, useEffect, useState } from "react";
 import Web3 from "web3";
 
-const LoyaltyDemo = () => {
-  const [points, setPoints] = useState(0); // Holds the user's points
+// Create the context
+export const Web3Context = createContext();
+
+export const Web3Provider = ({ children }) => {
   const [account, setAccount] = useState("");
+  const [points, setPoints] = useState(0);
   const [loyaltyProgram, setLoyaltyProgram] = useState(null);
 
-  // ABI and contract address
+  // Contract ABI and address
   const contractABI = [
     {
       inputs: [],
@@ -205,13 +208,11 @@ const LoyaltyDemo = () => {
         );
         setLoyaltyProgram(contract);
 
-        // Fetch the user's points from the blockchain and convert BigInt to number
+        // Fetch the user's points from the blockchain
         const userPoints = await contract.methods
           .viewPoints(accounts[0])
           .call();
-        const convertedPoints = Number(userPoints); // Convert BigInt to a regular number
-        console.log("Fetched Points:", convertedPoints); // Add this line for debugging
-        setPoints(convertedPoints); // Set the points in the state
+        setPoints(Number(userPoints));
       }
     };
 
@@ -224,12 +225,8 @@ const LoyaltyDemo = () => {
       await loyaltyProgram.methods
         .issuePoints(account, amount, account)
         .send({ from: account, gas: 3000000 });
-      const updatedPoints = await loyaltyProgram.methods
-        .viewPoints(account)
-        .call();
-      const convertedPoints = Number(updatedPoints); // Convert BigInt to number
-      setPoints(convertedPoints); // Update points after issuing
-      console.log("Updated Points in State:", convertedPoints); // Debug line
+      // Force an update by re-fetching points
+      await updatePoints();
       alert(`Successfully added ${amount} points.`);
     } catch (error) {
       console.error("Error issuing points:", error);
@@ -237,68 +234,49 @@ const LoyaltyDemo = () => {
     }
   };
 
-  // Function to redeem points
-  const redeemPoints = async (requiredPoints) => {
-    if (points >= requiredPoints) {
+  // Function to update points after any transaction
+  const updatePoints = async () => {
+    if (loyaltyProgram && account) {
       try {
-        await loyaltyProgram.methods
-          .redeemPoints(requiredPoints)
-          .send({ from: account });
         const updatedPoints = await loyaltyProgram.methods
           .viewPoints(account)
           .call();
-        const convertedPoints = Number(updatedPoints); // Convert BigInt to number
-        setPoints(convertedPoints); // Update points after redeeming
-        alert(`Successfully redeemed ${requiredPoints} points.`);
+        setPoints(Number(updatedPoints)); // Trigger the re-render by setting state
+        console.log("Updated Points:", Number(updatedPoints)); // Log updated points for debugging
+      } catch (error) {
+        console.error("Error updating points:", error);
+      }
+    }
+  };
+
+  const redeemPoints = async (requiredPoints) => {
+    if (points >= requiredPoints) {
+      try {
+        await loyaltyProgram.methods.redeemPoints(requiredPoints).send({
+          from: account,
+        });
+        const updatedPoints = await loyaltyProgram.methods
+          .viewPoints(account)
+          .call();
+        setPoints(Number(updatedPoints));
       } catch (error) {
         console.error("Error redeeming points:", error);
-        alert("An error occurred while redeeming points.");
       }
     } else {
-      alert("You don't have enough points.");
+      alert("Not enough points!");
     }
   };
 
   return (
-    <div className="container">
-      <h2>Blockchain-Based Travel Loyalty Program Demo</h2>
-
-      {/* Display points balance */}
-      <div className="points-balance">
-        Your current balance: {points} points {/* Display points here */}
-      </div>
-
-      {/* Buttons to simulate earning points */}
-      <div>
-        <h3>Earn Points</h3>
-        <button onClick={() => issuePoints(1000)}>
-          Book Flight (Earn 1000 points)
-        </button>
-        <button onClick={() => issuePoints(500)}>
-          Stay at Hotel (Earn 500 points)
-        </button>
-        <button onClick={() => issuePoints(300)}>
-          Rent a Car (Earn 300 points)
-        </button>
-      </div>
-
-      {/* Redemption options */}
-      <div className="redemption-options">
-        <div className="redemption-option">
-          <h3>Flight Discount</h3>
-          <button onClick={() => redeemPoints(2500)} disabled={points < 2500}>
-            Redeem 2500 points
-          </button>
-        </div>
-        <div className="redemption-option">
-          <h3>Hotel Night</h3>
-          <button onClick={() => redeemPoints(3000)} disabled={points < 3000}>
-            Redeem 3000 points
-          </button>
-        </div>
-      </div>
-    </div>
+    <Web3Context.Provider
+      value={{
+        account,
+        points,
+        issuePoints,
+        redeemPoints,
+      }}
+    >
+      {children}
+    </Web3Context.Provider>
   );
 };
-
-export default LoyaltyDemo;

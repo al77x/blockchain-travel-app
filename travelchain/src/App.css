@@ -243,3 +243,27 @@ footer {
   border-radius: 8px;
   margin-right: 20px;
 }
+
+.earn-points {
+  margin-top: 20px;
+}
+
+.earn-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.earn-buttons button {
+  padding: 10px 15px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  background-color: #4a90e2;
+  color: white;
+}
+
+.earn-buttons button:hover {
+  background-color: #0056b3;
+}

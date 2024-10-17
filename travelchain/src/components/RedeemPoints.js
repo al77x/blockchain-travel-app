@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useContext } from "react";
+import { Web3Context } from "../context/Web3Context";
 
-const RedeemPoints = ({ points, redeemPoints }) => {
+const RedeemPoints = () => {
+  const { points, redeemPoints } = useContext(Web3Context); // Access points and redeemPoints from context
+
   return (
     <div className="container">
       <h2>Redeem Your Points</h2>
       <div className="points-balance">
-        Your current balance: {points} points
+        Your current balance: {points} points {/* Display points here */}
       </div>
       <div className="redemption-options">
         <div className="redemption-option">
